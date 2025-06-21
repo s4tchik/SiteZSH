@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZSH Store — Магазин</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: #0a0a0a;
+      color: #eee;
+    }
+
+    header {
+      background: rgba(10,10,10,0.85);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 0 15px #7f5af0bb;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header strong {
+      color: #7f5af0;
+      font-size: 1.6rem;
+      text-shadow: 0 0 20px #7f5af0;
+    }
+    nav a {
+      color: #eee;
+      margin-left: 1.4rem;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    nav a:hover { color: #7f5af0; }
+
+    main {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .filters {
+      background: #121212;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #7f5af0bb;
+    }
+    .filters h2 { color: #00aaff; }
+    .filters label {
+      display: block;
+      margin: 10px 0;
+      color: #aad8ff;
+    }
+    .filters input { margin-right: 10px; }
+
+    .search-bar input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #222;
+      color: #fff;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .product-card {
+      background: #121212;
+      border-radius: 16px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 0 10px #7f5af0aa;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 20px #a37aff;
+    }
+    .product-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .product-title {
+      font-size: 1.1rem;
+      color: #aad8ff;
+      margin-top: 10px;
+    }
+    .product-price {
+      color: #00ff99;
+      margin: 8px 0;
+    }
+    .btn {
+      background: #7f5af0;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn:hover { background: #a37aff; }
+
+    .cart {
+      grid-column: 1 / -1;
+      margin-top: 40px;
+      background: #121212;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #7f5af0aa;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .cart-controls button {
+      background: none;
+      border: 1px solid #7f5af0;
+      color: #7f5af0;
+      border-radius: 4px;
+      padding: 2px 8px;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      display: none;
+    }
+    .modal-content {
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 12px;
+      color: white;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div><strong>ZSH</strong></div>
+    <nav>
+      <a href="#">Главная</a>
+      <a href="#">Игры</a>
+      <a href="#">О нас</a>
+      <a href="#">Контакты</a>
+    </nav>
+  </header>
+
+  <main>
+    <aside class="filters">
+      <div class="search-bar">
+        <input type="search" id="search" placeholder="Поиск..." />
+      </div>
+      <h2>Категории</h2>
+      <label><input type="checkbox" value="game" checked> Игры</label>
+      <label><input type="checkbox" value="dlc" checked> DLC</label>
+      <label><input type="checkbox" value="skin" checked> Скины</label>
+      <label><input type="checkbox" value="music" checked> Музыка</label>
+      <label><input type="checkbox" value="theme" checked> Темы</label>
+      <label><input type="checkbox" value="tools" checked> Инструменты</label>
+      <label><input type="checkbox" value="packs" checked> Пакеты</label>
+      <label><input type="checkbox" value="map" checked> Карты</label>
+      <label><input type="checkbox" value="mod" checked> Моды</label>
+      <label><input type="checkbox" value="vip" checked> VIP</label>
+    </aside>
+
+    <section>
+      <div class="products" id="productList"></div>
+      <div class="cart" id="cart">
+        <h2>Корзина</h2>
+        <div id="cartItems"></div>
+        <div id="cartTotal">Итого: 0₽</div>
+        <button class="btn" onclick="checkout()">Оформить заказ</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="modal">
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+
+  <script>
+    const categories = ["game","dlc","skin","music","theme","tools","packs","map","mod","vip"];
+    const products = Array.from({length: 20}, (_, i) => ({
+      id: i + 1,
+      title: `Товар #${i + 1}`,
+      category: categories[i % categories.length],
+      price: (Math.random() * 300 + 10).toFixed(0),
+      img: `https://via.placeholder.com/240x140?text=Item+${i + 1}`
+    }));
+
+    const cart = [];
+
+    function renderProducts() {
+      const search = document.getElementById("search").value.toLowerCase();
+      const filters = Array.from(document.querySelectorAll(".filters input[type=checkbox]:checked")).map(c => c.value);
+      const list = document.getElementById("productList");
+      list.innerHTML = "";
+      products.filter(p =>
+        p.title.toLowerCase().includes(search) && filters.includes(p.category)
+      ).forEach(p => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+          <img src="${p.img}" alt="${p.title}" />
+          <div class="product-title">${p.title}</div>
+          <div class="product-price">${p.price}₽</div>
+          <button class="btn" onclick="addToCart(${p.id})">В корзину</button>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function addToCart(id) {
+      const prod = products.find(p => p.id === id);
+      const existing = cart.find(i => i.id === id);
+      if (existing) existing.qty++;
+      else cart.push({ ...prod, qty: 1 });
+      renderCart();
+      showModal(`${prod.title} добавлен в корзину!`);
+    }
+
+    function removeFromCart(id) {
+      const index = cart.findIndex(i => i.id === id);
+      if (index !== -1) {
+        cart.splice(index, 1);
+        renderCart();
+      }
+    }
+
+    function changeQty(id, delta) {
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) removeFromCart(id);
+      renderCart();
+    }
+
+    function renderCart() {
+      const container = document.getElementById("cartItems");
+      const totalDisplay = document.getElementById("cartTotal");
+      container.innerHTML = "";
+      let total = 0;
+      cart.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        total += item.price * item.qty;
+        div.innerHTML = `
+          <span>${item.title} × ${item.qty}</span>
+          <span>${item.price * item.qty}₽</span>
+          <span class="cart-controls">
+            <button onclick="changeQty(${item.id}, -1)">−</button>
+            <button onclick="changeQty(${item.id}, 1)">+</button>
+            <button onclick="removeFromCart(${item.id})">Удалить</button>
+          </span>
+        `;
+        container.appendChild(div);
+      });
+      totalDisplay.textContent = `Итого: ${total}₽`;
+    }
+
+    function showModal(message) {
+      const modal = document.getElementById("modal");
+      const content = document.getElementById("modalContent");
+      content.textContent = message;
+      modal.style.display = "flex";
+      setTimeout(() => modal.style.display = "none", 2000);
+    }
+
+    function checkout() {
+      if (cart.length === 0) return showModal("Корзина пуста!");
+      showModal("Спасибо за покупку!");
+      cart.length = 0;
+      renderCart();
+    }
+
+    document.querySelectorAll(".filters input").forEach(input => {
+      input.addEventListener("change", renderProducts);
+    });
+    document.getElementById("search").addEventListener("input", renderProducts);
+
+    renderProducts();
+    renderCart();
+  </script>
+</body>
+</html>
