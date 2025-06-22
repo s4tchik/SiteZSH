@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Аналитика — ZSH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: #0a0a0a;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    canvas#bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 1rem 2rem;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav a {
+      color: white;
+      margin: 0 1rem;
+      text-decoration: none;
+      position: relative;
+    }
+    nav a:hover::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: #7f5af0;
+      bottom: -4px;
+      left: 0;
+    }
+
+    main {
+      position: relative;
+      z-index: 10;
+      max-width: 1000px;
+      margin: 7rem auto 3rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      box-shadow: 0 0 25px rgba(127, 90, 240, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      color: #7f5af0;
+      animation: glitch 1.5s infinite;
+    }
+
+    @keyframes glitch {
+      0% { text-shadow: 2px 2px #ff00c8, -2px -2px #00fff7; }
+      25% { text-shadow: -3px 2px #ff00c8, 2px -3px #00fff7; }
+      50% { text-shadow: 2px -3px #ff00c8, -3px 3px #00fff7; }
+      75% { text-shadow: -2px 3px #ff00c8, 3px -2px #00fff7; }
+      100% { text-shadow: 0 0 #ff00c8, 0 0 #00fff7; }
+    }
+
+    .chart-container {
+      margin-top: 2rem;
+      background: #111;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(127, 90, 240, 0.2);
+    }
+
+    canvas.chart {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <header>
+    <div><strong>ZSH</strong></div>
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="about.html">О нас</a>
+      <a href="games.html">Игры</a>
+      <a href="blog.html">Блог</a>
+      <a href="analytics.html">Аналитика</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>📊 Аналитика аккаунта</h1>
+
+    <div class="chart-container">
+      <canvas id="visitsChart" class="chart"></canvas>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="activityChart" class="chart"></canvas>
+    </div>
+  </main>
+
+  <script>
+    const visitsChart = new Chart(document.getElementById('visitsChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+        datasets: [{
+          label: 'Посещения сайта',
+          data: [120, 190, 300, 220, 400, 360, 280],
+          backgroundColor: 'rgba(127, 90, 240, 0.2)',
+          borderColor: '#7f5af0',
+          borderWidth: 2,
+          fill: true
+        }]
+      }
+    });
+
+    const activityChart = new Chart(document.getElementById('activityChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['Игры', 'Сообщения', 'Форум', 'Баги'],
+        datasets: [{
+          label: 'Активность по категориям',
+          data: [140, 220, 100, 80],
+          backgroundColor: ['#7f5af0', '#5ad4f0', '#f07f9c', '#f0b97f']
+        }]
+      }
+    });
+
+    // WebGL background
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('bg'), alpha: true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.position.z = 5;
+
+    const geometry = new THREE.TorusKnotGeometry(1.5, 0.4, 100, 16);
+    const material = new THREE.MeshStandardMaterial({color: 0x7f5af0});
+    const torus = new THREE.Mesh(geometry, material);
+    scene.add(torus);
+
+    const light = new THREE.PointLight(0xffffff);
+    light.position.set(5, 5, 5);
+    scene.add(light);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      torus.rotation.x += 0.005;
+      torus.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Playground — ZSH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: #0a0a0a;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 {
+      color: #7f5af0;
+      margin-bottom: 1rem;
+      animation: glitch 1.5s infinite;
+    }
+    @keyframes glitch {
+      0%, 100% { text-shadow: 2px 2px #ff00c8, -2px -2px #00fff7; }
+      50% { text-shadow: -2px 2px #00fff7, 2px -2px #ff00c8; }
+    }
+    canvas {
+      border: 3px solid #7f5af0;
+      background: #111;
+      margin-top: 1rem;
+    }
+    button {
+      margin-top: 1rem;
+      background: #7f5af0;
+      color: black;
+      padding: 0.6rem 1rem;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 AI Playground — Генератор карт</h1>
+  <canvas id="mapCanvas" width="500" height="500"></canvas>
+  <button onclick="generateDungeon()">Сгенерировать заново</button>
+
+  <script>
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    const tileSize = 10;
+    const cols = canvas.width / tileSize;
+    const rows = canvas.height / tileSize;
+
+    const FLOOR = 1;
+    const WALL = 0;
+
+    function generateDungeon() {
+      // Очистка карты
+      let map = Array.from({ length: rows }, () => Array(cols).fill(WALL));
+
+      let rooms = [];
+      let currentX = Math.floor(cols / 2);
+      let currentY = Math.floor(rows / 2);
+
+      function digRoom(x, y, w, h) {
+        for (let i = y; i < y + h; i++) {
+          for (let j = x; j < x + w; j++) {
+            if (i > 0 && i < rows && j > 0 && j < cols) {
+              map[i][j] = FLOOR;
+            }
+          }
+        }
+      }
+
+      function digCorridor(x1, y1, x2, y2) {
+        let x = x1, y = y1;
+        while (x !== x2) {
+          map[y][x] = FLOOR;
+          x += x < x2 ? 1 : -1;
+        }
+        while (y !== y2) {
+          map[y][x] = FLOOR;
+          y += y < y2 ? 1 : -1;
+        }
+      }
+
+      for (let i = 0; i < 8; i++) {
+        let roomW = Math.floor(Math.random() * 6) + 4;
+        let roomH = Math.floor(Math.random() * 6) + 4;
+        let offsetX = Math.floor(Math.random() * (cols - roomW));
+        let offsetY = Math.floor(Math.random() * (rows - roomH));
+
+        if (rooms.length > 0) {
+          let prev = rooms[rooms.length - 1];
+          let centerX = Math.floor(offsetX + roomW / 2);
+          let centerY = Math.floor(offsetY + roomH / 2);
+          digCorridor(prev.cx, prev.cy, centerX, centerY);
+          rooms.push({ x: offsetX, y: offsetY, w: roomW, h: roomH, cx: centerX, cy: centerY });
+        } else {
+          rooms.push({ x: offsetX, y: offsetY, w: roomW, h: roomH, cx: offsetX + Math.floor(roomW/2), cy: offsetY + Math.floor(roomH/2) });
+        }
+        digRoom(offsetX, offsetY, roomW, roomH);
+      }
+
+      drawMap(map);
+    }
+
+    function drawMap(map) {
+      for (let y = 0; y < map.length; y++) {
+        for (let x = 0; x < map[y].length; x++) {
+          ctx.fillStyle = map[y][x] === FLOOR ? '#7f5af0' : '#111';
+          ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+        }
+      }
+    }
+
+    generateDungeon();
+  </script>
+</body>
+</html>
